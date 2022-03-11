@@ -59,8 +59,17 @@ public class CustomermanagementApplication {
             "Application '{}' is running! Access URLs:\n\t" +
             "Local: \t\t{}://localhost:{}{}\n\t" +
             "External: \t{}://{}:{}{}\n\t" +
+            "Local Swagger UI: \t\t{}://localhost:{}{}swagger-ui/\n\t" +
+            "External Swagger UI: \t{}://{}:{}{}swagger-ui/\n\t" +
             "Profile(s): \t{}\n----------------------------------------------------------",
             env.getProperty("spring.application.name"),
+            protocol,
+            serverPort,
+            contextPath,
+            protocol,
+            hostAddress,
+            serverPort,
+            contextPath,
             protocol,
             serverPort,
             contextPath,

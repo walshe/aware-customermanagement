@@ -41,6 +41,15 @@ public class Customer implements Serializable {
     @Column(name = "external_customer_id", length = 128, unique = true)
     private String externalCustomerId;
 
+    public Customer(){}
+
+    public Customer(String name, Gender gender, String externalCustomerId, LocalDate birthDate){
+        this.name = name;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.externalCustomerId = externalCustomerId;
+    }
+
     public Long getId() {
         return id;
     }
