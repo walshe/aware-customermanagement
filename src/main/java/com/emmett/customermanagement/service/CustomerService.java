@@ -1,7 +1,7 @@
 package com.emmett.customermanagement.service;
 
 import com.emmett.customermanagement.domain.Customer;
-import com.emmett.customermanagement.repository.CustomerRepository;
+import com.emmett.customermanagement.repository.jpa.CustomerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

@@ -1,5 +1,6 @@
 package com.emmett.customermanagement.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
@@ -15,6 +16,11 @@ import java.util.Arrays;
 
 @Configuration
 public class SpringFoxConfig {
+
+    @Value("${spring.application.name}")
+    private String applicationName;
+
+
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -22,7 +28,7 @@ public class SpringFoxConfig {
           .apis(RequestHandlerSelectors.any())
           .paths(PathSelectors.any())
           .build()
-                .apiInfo(new ApiInfo("Customer API", "Customer API developer reference docs", "1.0", "",
+                .apiInfo(new ApiInfo(applicationName, "Customer API developer reference docs", "1.0", "",
                         new Contact("Emmett Walsh","", null), "", "", Arrays.asList(new VendorExtension() {
                     @Override
                     public String getName() {

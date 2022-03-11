@@ -1,6 +1,8 @@
 package com.emmett.customermanagement.domain;
 
 import com.emmett.customermanagement.domain.enumeration.Gender;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -10,8 +12,10 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "customer")
+@ApiModel(description = "Represents a Customer")
 public class Customer implements Serializable {
 
+    @ApiModelProperty(notes = "Omit for POST")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -27,10 +31,12 @@ public class Customer implements Serializable {
     @Column(name = "name", length = 128, nullable = false)
     private String name;
 
+    @ApiModelProperty(notes = "Enter in form YYYY-MM-DD")
     @NotNull
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
+    @ApiModelProperty(notes = "This is an optional field allowing an external customer id to be specified. This can avoid accidentally adding the same user twice. Omit if not needed")
     @Size(max = 128)
     @Column(name = "external_customer_id", length = 128, unique = true)
     private String externalCustomerId;
