@@ -1,6 +1,7 @@
 package com.emmett.customermanagement.web;
 
 import com.emmett.customermanagement.domain.Customer;
+import com.emmett.customermanagement.repository.jpa.CustomerRepository;
 import com.emmett.customermanagement.service.CustomerService;
 import com.emmett.customermanagement.web.errors.BadRequestAlertException;
 import com.emmett.customermanagement.web.util.HeaderUtil;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -33,10 +36,13 @@ public class CustomerResource {
 
     private final CustomerService customerService;
 
+    private final CustomerRepository customerRepository;
+
     public CustomerResource(
-            CustomerService customerService
+            CustomerService customerService, CustomerRepository customerRepository
     ) {
         this.customerService = customerService;
+        this.customerRepository = customerRepository;
     }
 
     @PostMapping("/customers")
@@ -71,5 +77,77 @@ public class CustomerResource {
         return customer.map(response -> ResponseEntity.ok().body(response))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
+    }
+
+    /**
+     * Full update of a customer
+     * @param id
+     * @param customer
+     * @return
+     * @throws URISyntaxException
+     */
+    @PutMapping("/customers/{id}")
+    public ResponseEntity<Customer> updateCustomer(
+        @PathVariable(value = "id", required = false) final Long id,
+        @Valid @RequestBody Customer customer
+    ) throws URISyntaxException {
+        log.debug("REST request to update Customer : {}, {}", id, customer);
+        if (customer.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!Objects.equals(id, customer.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+
+        if (!customerRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        Customer result = customerService.save(customer);
+        return ResponseEntity
+            .ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, customer.getId().toString()))
+            .body(result);
+    }
+
+    /**
+     * Partial update of a customer
+     * @param id
+     * @param customer
+     * @return
+     * @throws URISyntaxException
+     */
+    @PatchMapping(value = "/customers/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    public ResponseEntity<Customer> partialUpdateCustomer(
+        @PathVariable(value = "id", required = false) final Long id,
+        @NotNull @RequestBody Customer customer
+    ) throws URISyntaxException {
+        log.debug("REST request to partial update Customer partially : {}, {}", id, customer);
+        if (customer.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!Objects.equals(id, customer.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+
+        if (!customerRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        Optional<Customer> result = customerService.partialUpdate(customer);
+
+        return result.map(response -> ResponseEntity.ok().headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, customer.getId().toString())).body(response))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+    }
+
+    @DeleteMapping("/customers/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+        log.debug("REST request to delete Customer : {}", id);
+        customerService.delete(id);
+        return ResponseEntity
+            .noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+            .build();
     }
 }
