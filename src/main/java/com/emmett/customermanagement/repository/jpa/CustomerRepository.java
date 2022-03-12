@@ -29,7 +29,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSp
      * @return
      */
     @Query(
-            value = "select avg(DATEDIFF(YEAR, birth_date, CURRENT_DATE())) as avg_age from customer where gender = :#{#gender?.name()}",
+            value = "select avg(DATEDIFF(YEAR, birth_date, CURRENT_DATE()" +
+                    ")) as avg_age from customer where gender = :#{#gender?.name()}",
             nativeQuery = true)
     String findAvgAgeByGender(@Param(value = "gender") Gender gender);
 

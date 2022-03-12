@@ -1,6 +1,8 @@
 package com.emmett.customermanagement.domain;
 
 import com.emmett.customermanagement.domain.enumeration.Gender;
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvDate;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -22,22 +24,27 @@ public class Customer implements Serializable {
     @Column(name = "id")
     private Long id;
 
+    @CsvBindByName(column = "gender")// used for our csv import facility
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false)
     private Gender gender;
 
+    @CsvBindByName(column = "name")// used for our csv import facility
     @NotNull
     @Size(min = 3, max = 128)
     @Column(name = "name", length = 128, nullable = false)
     private String name;
 
     @ApiModelProperty(notes = "Enter in form YYYY-MM-DD")
+    @CsvDate(value = "yyyy-MM-dd") // used for our csv import facility
+    @CsvBindByName(column = "birthDate") // used for our csv import facility
     @NotNull
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
     @ApiModelProperty(notes = "This is an optional field allowing an external customer id to be specified. This can avoid accidentally adding the same user twice. Omit if not needed")
+    @CsvBindByName(column = "externalCustomerId")// used for our csv import facility
     @Size(max = 128)
     @Column(name = "external_customer_id", length = 128, unique = true)
     private String externalCustomerId;
@@ -49,9 +56,10 @@ public class Customer implements Serializable {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    public Customer(){}
+    public Customer() {
+    }
 
-    public Customer(String name, Gender gender, String externalCustomerId, LocalDate birthDate, Instant createdAt){
+    public Customer(String name, Gender gender, String externalCustomerId, LocalDate birthDate, Instant createdAt) {
         this.name = name;
         this.gender = gender;
         this.birthDate = birthDate;
@@ -117,6 +125,7 @@ public class Customer implements Serializable {
 
     /**
      * only comparing db id here!!
+     *
      * @param o
      * @return
      */

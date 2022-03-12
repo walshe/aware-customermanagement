@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 
 @SpringBootTest(classes = CustomermanagementApplication.class)
-@AutoConfigureMockMvc // This loads a web ApplicationContext and provides a mock web environment. Embedded servers are not started when using this annotation.
+@AutoConfigureMockMvc
+// This loads a web ApplicationContext and provides a mock web environment. Embedded servers are not started when using this annotation.
 public class CustomerResourceIntegrationTest {
 
     private static final Gender DEFAULT_GENDER = Gender.MALE;
@@ -104,6 +106,29 @@ public class CustomerResourceIntegrationTest {
 
     @Test
     @Transactional
+    void importCsv() throws Exception {
+        int databaseSizeBeforeCreate = customerRepository.findAll().size();
+
+        StringBuilder fileContentBuilder = new StringBuilder();
+        fileContentBuilder.append("name,gender,birthDate,externalCustomerId\n")
+                .append("Joe Soap,MALE,1977-08-30,js@gmail.com\n")
+                .append("Josephine Soap,FEMALE,1997-08-30,js2@gmail.com\n");
+
+
+        MockMultipartFile multipartFile = new MockMultipartFile("file", "test.txt",
+                "text/csv", fileContentBuilder.toString().getBytes());
+
+        // Create the Customer
+        restCustomerMockMvc
+                .perform(multipart(ENTITY_API_URL + "/import-csv").file(multipartFile))
+                .andExpect(status().isCreated());
+
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeCreate + 2);
+    }
+
+    @Test
+    @Transactional
     void createCustomerWithExistingId() throws Exception {
         // Create the Customer with an existing ID
         customer.setId(1L);
@@ -129,8 +154,8 @@ public class CustomerResourceIntegrationTest {
         // Create the Customer, which fails.
 
         restCustomerMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
-            .andExpect(status().isBadRequest());
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
+                .andExpect(status().isBadRequest());
 
         List<Customer> customerList = customerRepository.findAll();
         assertThat(customerList).hasSize(databaseSizeBeforeTest);
@@ -146,8 +171,8 @@ public class CustomerResourceIntegrationTest {
         // Create the Customer, which fails.
 
         restCustomerMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
-            .andExpect(status().isBadRequest());
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
+                .andExpect(status().isBadRequest());
 
         List<Customer> customerList = customerRepository.findAll();
         assertThat(customerList).hasSize(databaseSizeBeforeTest);
@@ -163,8 +188,8 @@ public class CustomerResourceIntegrationTest {
         // Create the Customer, which fails.
 
         restCustomerMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
-            .andExpect(status().isBadRequest());
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
+                .andExpect(status().isBadRequest());
 
         List<Customer> customerList = customerRepository.findAll();
         assertThat(customerList).hasSize(databaseSizeBeforeTest);
@@ -178,14 +203,14 @@ public class CustomerResourceIntegrationTest {
 
         // Get the customer
         restCustomerMockMvc
-            .perform(get(ENTITY_API_URL_ID, customer.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(customer.getId().intValue()))
-            .andExpect(jsonPath("$.gender").value(DEFAULT_GENDER.toString()))
-            .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
-            .andExpect(jsonPath("$.birthDate").value(DEFAULT_BIRTH_DATE.toString()))
-            .andExpect(jsonPath("$.externalCustomerId").value(DEFAULT_EXTERNAL_CUSTOMER_ID));
+                .perform(get(ENTITY_API_URL_ID, customer.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id").value(customer.getId().intValue()))
+                .andExpect(jsonPath("$.gender").value(DEFAULT_GENDER.toString()))
+                .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
+                .andExpect(jsonPath("$.birthDate").value(DEFAULT_BIRTH_DATE.toString()))
+                .andExpect(jsonPath("$.externalCustomerId").value(DEFAULT_EXTERNAL_CUSTOMER_ID));
     }
 
     @Test
@@ -216,14 +241,13 @@ public class CustomerResourceIntegrationTest {
         customerToUpdate.setUpdatedAt(Instant.now());
 
 
-
         restCustomerMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, customerToUpdate.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(customerToUpdate))
-            )
-            .andExpect(status().isOk());
+                .perform(
+                        put(ENTITY_API_URL_ID, customerToUpdate.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(TestUtil.convertObjectToJsonBytes(customerToUpdate))
+                )
+                .andExpect(status().isOk());
 
         // Validate the Customer in the database
         List<Customer> customerList = customerRepository.findAll();
@@ -243,12 +267,12 @@ public class CustomerResourceIntegrationTest {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCustomerMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, customer.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(customer))
-            )
-            .andExpect(status().isBadRequest());
+                .perform(
+                        put(ENTITY_API_URL_ID, customer.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(TestUtil.convertObjectToJsonBytes(customer))
+                )
+                .andExpect(status().isBadRequest());
 
         // Validate the Customer in the database
         List<Customer> customerList = customerRepository.findAll();
@@ -263,12 +287,12 @@ public class CustomerResourceIntegrationTest {
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCustomerMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, count.incrementAndGet())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(customer))
-            )
-            .andExpect(status().isBadRequest());
+                .perform(
+                        patch(ENTITY_API_URL_ID, count.incrementAndGet())
+                                .contentType("application/merge-patch+json")
+                                .content(TestUtil.convertObjectToJsonBytes(customer))
+                )
+                .andExpect(status().isBadRequest());
 
         // Validate the Customer in the database
         List<Customer> customerList = customerRepository.findAll();
@@ -283,8 +307,8 @@ public class CustomerResourceIntegrationTest {
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCustomerMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(customer)))
-            .andExpect(status().isMethodNotAllowed());
+                .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(customer)))
+                .andExpect(status().isMethodNotAllowed());
 
         // Validate the Customer in the database
         List<Customer> customerList = customerRepository.findAll();
@@ -301,15 +325,15 @@ public class CustomerResourceIntegrationTest {
 
         // Delete the customer
         restCustomerMockMvc
-            .perform(delete(ENTITY_API_URL_ID, customer.getId()).accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+                .perform(delete(ENTITY_API_URL_ID, customer.getId()).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         List<Customer> customerList = customerRepository.findAll();
         assertThat(customerList).hasSize(databaseSizeBeforeDelete - 1);
     }
 
-        @Test
+    @Test
     @Transactional
     void getAllCustomers() throws Exception {
         // Initialize the database
@@ -317,13 +341,13 @@ public class CustomerResourceIntegrationTest {
 
         // Get all the customerList
         restCustomerMockMvc
-            .perform(get(ENTITY_API_URL + "?page=0&size=10"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(customer.getId().intValue())))
-            .andExpect(jsonPath("$.[*].gender").value(hasItem(DEFAULT_GENDER.toString())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
-            .andExpect(jsonPath("$.[*].birthDate").value(hasItem(DEFAULT_BIRTH_DATE.toString())))
-            .andExpect(jsonPath("$.[*].externalCustomerId").value(hasItem(DEFAULT_EXTERNAL_CUSTOMER_ID)));
+                .perform(get(ENTITY_API_URL + "?page=0&size=10"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.[*].id").value(hasItem(customer.getId().intValue())))
+                .andExpect(jsonPath("$.[*].gender").value(hasItem(DEFAULT_GENDER.toString())))
+                .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+                .andExpect(jsonPath("$.[*].birthDate").value(hasItem(DEFAULT_BIRTH_DATE.toString())))
+                .andExpect(jsonPath("$.[*].externalCustomerId").value(hasItem(DEFAULT_EXTERNAL_CUSTOMER_ID)));
     }
 }

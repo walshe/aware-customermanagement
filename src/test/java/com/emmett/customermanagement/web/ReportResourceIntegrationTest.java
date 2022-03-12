@@ -84,7 +84,7 @@ public class ReportResourceIntegrationTest {
     private int expectedAverageAge = (int)this.customers.stream().mapToInt(c-> Period.between(c.getBirthDate(), LocalDate.now()).getYears()  ).average().getAsDouble();
     private int expectedAverageMaleAge = (int)this.customers.stream().filter(c -> c.getGender() == Gender.MALE).mapToInt(c-> Period.between(c.getBirthDate(), LocalDate.now()).getYears()  ).average().getAsDouble();
     private int expectedAverageFemaleAge = (int)this.customers.stream().filter(c -> c.getGender() == Gender.FEMALE).mapToInt(c-> Period.between(c.getBirthDate(), LocalDate.now()).getYears()  ).average().getAsDouble();
-    
+
 
     @BeforeEach
     public void initTest() {

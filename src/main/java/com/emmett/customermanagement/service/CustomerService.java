@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,13 +27,33 @@ public class CustomerService {
 
 
     public Customer save(Customer customer) {
-        if(customer.getId() == null){
+        if (customer.getId() == null) {
             customer.setCreatedAt(Instant.now());
-        }else{
+        } else {
             customer.setUpdatedAt(Instant.now());
         }
         log.debug("Request to save Customer : {}", customer);
         return customerRepository.save(customer);
+    }
+
+    /**
+     * Saves all in one transaction
+     * @param customers
+     * @return
+     */
+    public List<Customer> saveAll(List<Customer> customers) {
+
+        customers = customers.stream().map(c -> {
+            if (c.getId() == null) {
+                c.setCreatedAt(Instant.now());
+            } else {
+                c.setUpdatedAt(Instant.now());
+            }
+            return c;
+        }).collect(Collectors.toList());
+
+        log.debug("Request to save Customer List of size : {}", customers.size());
+        return customerRepository.saveAll(customers);
     }
 
 

@@ -6,6 +6,10 @@ import com.emmett.customermanagement.service.CustomerService;
 import com.emmett.customermanagement.web.errors.BadRequestAlertException;
 import com.emmett.customermanagement.web.util.HeaderUtil;
 import com.emmett.customermanagement.web.util.PaginationUtil;
+import com.opencsv.CSVReader;
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +22,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -73,6 +81,36 @@ public class CustomerResource {
             throw ex;
 
         }
+    }
+
+    @PostMapping("/customers/import-csv")
+    public ResponseEntity<Map> importCsv(@RequestPart(value = "file", required = true) MultipartFile file) throws Exception {
+
+        HeaderColumnNameMappingStrategy hcnms = new HeaderColumnNameMappingStrategy();
+        hcnms.setType(Customer.class);
+
+        try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
+            CsvToBean cb = new CsvToBeanBuilder(reader)
+                    .withType(Customer.class)
+                    .withMappingStrategy(hcnms)
+                    .build();
+
+            List<Customer> parsedCustomers = cb.parse();
+            List<Customer> saved = customerService.saveAll(parsedCustomers);
+
+            Map m = new HashMap();
+            m.put("success", true);
+            m.put("saved", saved.size());
+
+            return ResponseEntity
+                .created(new URI("/api/customers/*"))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, "*"))
+                .body(m);
+        }
+
+
+
+
     }
 
     @GetMapping("/customers/{id}")
@@ -172,6 +210,7 @@ public class CustomerResource {
 
     /**
      * Rudimentary "getAll" - with no criteria for now. Just pages a result set that's currently sorted by name ascending
+     *
      * @param page
      * @param size
      * @return
