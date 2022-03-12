@@ -96,6 +96,7 @@ public class CustomerResource {
                     .build();
 
             List<Customer> parsedCustomers = cb.parse();
+
             List<Customer> saved = customerService.saveAll(parsedCustomers);
 
             Map m = new HashMap();
@@ -106,6 +107,14 @@ public class CustomerResource {
                 .created(new URI("/api/customers/*"))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, "*"))
                 .body(m);
+        } catch (Exception ex) {
+            if (ex.getCause() instanceof ConstraintViolationException) {
+                if (((ConstraintViolationException) (ex.getCause())).getSQLState().equals("23505")) {
+                    throw new BadRequestAlertException("A customer with this externalCustomerId exists already", ENTITY_NAME, "externalIdexists");
+                }
+            }
+            throw ex;
+
         }
 
 
