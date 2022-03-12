@@ -14,6 +14,9 @@ import springfox.documentation.spring.web.plugins.Docket;
 
 import java.util.Arrays;
 
+/**
+ * This class sets up the self documenting SwaggerUI page
+ */
 @Configuration
 public class SpringFoxConfig {
 
@@ -24,12 +27,12 @@ public class SpringFoxConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
-          .select()
-          .apis(RequestHandlerSelectors.any())
-          .paths(PathSelectors.any())
-          .build()
+                .select()
+                .apis(RequestHandlerSelectors.any())
+                .paths(PathSelectors.any())
+                .build()
                 .apiInfo(new ApiInfo(applicationName, "Customer API developer reference docs", "1.0", "",
-                        new Contact("Emmett Walsh","", null), "", "", Arrays.asList(new VendorExtension() {
+                        new Contact("Emmett Walsh", "", null), "", "", Arrays.asList(new VendorExtension() {
                     @Override
                     public String getName() {
                         return "";
