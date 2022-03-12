@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -71,7 +72,7 @@ public class CustomerResourceIntegrationTest {
     public static Customer createEntity() {
         Customer customer = new Customer(DEFAULT_NAME,
                 DEFAULT_GENDER, DEFAULT_EXTERNAL_CUSTOMER_ID,
-                DEFAULT_BIRTH_DATE);
+                DEFAULT_BIRTH_DATE, Instant.now());
 
         return customer;
     }
@@ -211,6 +212,8 @@ public class CustomerResourceIntegrationTest {
         customerToUpdate.setGender(UPDATED_GENDER);
         customerToUpdate.setBirthDate(UPDATED_BIRTH_DATE);
         customerToUpdate.setExternalCustomerId(UPDATED_EXTERNAL_CUSTOMER_ID);
+        customerToUpdate.setCreatedAt(existingCustomer.getCreatedAt());
+        customerToUpdate.setUpdatedAt(Instant.now());
 
 
 

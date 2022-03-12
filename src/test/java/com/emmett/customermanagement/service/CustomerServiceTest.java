@@ -11,6 +11,7 @@ import org.mockito.MockitoAnnotations;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 public class CustomerServiceTest {
@@ -32,7 +33,7 @@ public class CustomerServiceTest {
     @Test
     void save() throws Exception {
         Customer customer = new Customer("unit test", Gender.FEMALE,
-                "externalId",LocalDate.ofEpochDay(0L));
+                "externalId",LocalDate.ofEpochDay(0L), Instant.now());
 
         //set expectation
         when(customerRepository.save(customer)).thenReturn(customer);

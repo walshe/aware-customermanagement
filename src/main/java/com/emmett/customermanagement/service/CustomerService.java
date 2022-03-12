@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -24,6 +25,11 @@ public class CustomerService {
 
 
     public Customer save(Customer customer) {
+        if(customer.getId() == null){
+            customer.setCreatedAt(Instant.now());
+        }else{
+            customer.setUpdatedAt(Instant.now());
+        }
         log.debug("Request to save Customer : {}", customer);
         return customerRepository.save(customer);
     }

@@ -1,5 +1,6 @@
 package com.emmett.customermanagement;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.concurrent.ThreadLocalRandom;
@@ -12,8 +13,8 @@ public class SQLGenerator {
         LocalDate end = LocalDate.of(1996, Month.JUNE, 11);
 
         IntStream.range(0, 1000).boxed().forEach(n -> {
-            System.out.printf("INSERT INTO CUSTOMER (name, birth_date, gender, external_customer_id) VALUES ('name_%d', '%s', '%s','external_id_%d');\n",
-                    n, between(start, end).toString(), (n%2==0)?"MALE":"FEMALE", n);
+            System.out.printf("INSERT INTO CUSTOMER (name, birth_date, gender, external_customer_id, created_at) VALUES ('name_%d', '%s', '%s','external_id_%d', '%s');\n",
+                    n, between(start, end).toString(), (n%2==0)?"MALE":"FEMALE", n, Instant.now().toString());
         });
     }
 

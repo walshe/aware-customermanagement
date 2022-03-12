@@ -8,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -41,13 +42,21 @@ public class Customer implements Serializable {
     @Column(name = "external_customer_id", length = 128, unique = true)
     private String externalCustomerId;
 
+    //@NotNull lets make optional so that POST api doesnt need it
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
     public Customer(){}
 
-    public Customer(String name, Gender gender, String externalCustomerId, LocalDate birthDate){
+    public Customer(String name, Gender gender, String externalCustomerId, LocalDate birthDate, Instant createdAt){
         this.name = name;
         this.gender = gender;
         this.birthDate = birthDate;
         this.externalCustomerId = externalCustomerId;
+        this.createdAt = createdAt;
     }
 
     public Long getId() {
@@ -88,6 +97,22 @@ public class Customer implements Serializable {
 
     public void setExternalCustomerId(String externalCustomerId) {
         this.externalCustomerId = externalCustomerId;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     /**
