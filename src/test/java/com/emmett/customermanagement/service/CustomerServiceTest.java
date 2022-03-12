@@ -13,7 +13,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 
-public class CustomerServiceIntegrationTest {
+public class CustomerServiceTest {
 
     @InjectMocks // this will inject the customerRepositoryMock into the CustomerService we want to test
 	CustomerService customerService;

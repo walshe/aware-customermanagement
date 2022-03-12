@@ -17,10 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * From Spring docs: Another useful approach is to not start the server at all but to test only the
@@ -52,6 +54,9 @@ public class CustomerResourceIntegrationTest {
 
     private static final String ENTITY_API_URL = "/api/customers";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
+
+    private static Random random = new Random();
+    private static AtomicLong count = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
 
     @Autowired
@@ -110,5 +115,193 @@ public class CustomerResourceIntegrationTest {
         // Validate the Customer in the database
         List<Customer> customerList = customerRepository.findAll();
         assertThat(customerList).hasSize(databaseSizeBeforeCreate);
+    }
+
+    @Test
+    @Transactional
+    void checkGenderIsRequired() throws Exception {
+        int databaseSizeBeforeTest = customerRepository.findAll().size();
+        // set the field null
+        customer.setGender(null);
+
+        // Create the Customer, which fails.
+
+        restCustomerMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
+            .andExpect(status().isBadRequest());
+
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    void checkNameIsRequired() throws Exception {
+        int databaseSizeBeforeTest = customerRepository.findAll().size();
+        // set the field null
+        customer.setName(null);
+
+        // Create the Customer, which fails.
+
+        restCustomerMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
+            .andExpect(status().isBadRequest());
+
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    void checkBirthDateIsRequired() throws Exception {
+        int databaseSizeBeforeTest = customerRepository.findAll().size();
+        // set the field null
+        customer.setBirthDate(null);
+
+        // Create the Customer, which fails.
+
+        restCustomerMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(customer)))
+            .andExpect(status().isBadRequest());
+
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    void getCustomer() throws Exception {
+        // Initialize the database
+        customerRepository.saveAndFlush(customer);
+
+        // Get the customer
+        restCustomerMockMvc
+            .perform(get(ENTITY_API_URL_ID, customer.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.id").value(customer.getId().intValue()))
+            .andExpect(jsonPath("$.gender").value(DEFAULT_GENDER.toString()))
+            .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
+            .andExpect(jsonPath("$.birthDate").value(DEFAULT_BIRTH_DATE.toString()))
+            .andExpect(jsonPath("$.externalCustomerId").value(DEFAULT_EXTERNAL_CUSTOMER_ID));
+    }
+
+    @Test
+    @Transactional
+    void getNonExistingCustomer() throws Exception {
+        // Get the customer
+        restCustomerMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    void putNewCustomer() throws Exception {
+        // Initialize the database
+        customerRepository.saveAndFlush(customer);
+
+        int databaseSizeBeforeUpdate = customerRepository.findAll().size();
+
+        // Update the customer
+        Customer existingCustomer = customerRepository.findById(customer.getId()).get();
+
+        Customer customerToUpdate = new Customer();
+        customerToUpdate.setId(existingCustomer.getId());
+        customerToUpdate.setName(UPDATED_NAME);
+        customerToUpdate.setGender(UPDATED_GENDER);
+        customerToUpdate.setBirthDate(UPDATED_BIRTH_DATE);
+        customerToUpdate.setExternalCustomerId(UPDATED_EXTERNAL_CUSTOMER_ID);
+
+
+
+        restCustomerMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, customerToUpdate.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(customerToUpdate))
+            )
+            .andExpect(status().isOk());
+
+        // Validate the Customer in the database
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeUpdate);
+        Customer testCustomer = customerList.get(customerList.size() - 1);
+        assertThat(testCustomer.getGender()).isEqualTo(UPDATED_GENDER);
+        assertThat(testCustomer.getName()).isEqualTo(UPDATED_NAME);
+        assertThat(testCustomer.getBirthDate()).isEqualTo(UPDATED_BIRTH_DATE);
+        assertThat(testCustomer.getExternalCustomerId()).isEqualTo(UPDATED_EXTERNAL_CUSTOMER_ID);
+    }
+
+    @Test
+    @Transactional
+    void putNonExistingCustomer() throws Exception {
+        int databaseSizeBeforeUpdate = customerRepository.findAll().size();
+        customer.setId(count.incrementAndGet());
+
+        // If the entity doesn't have an ID, it will throw BadRequestAlertException
+        restCustomerMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, customer.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(customer))
+            )
+            .andExpect(status().isBadRequest());
+
+        // Validate the Customer in the database
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeUpdate);
+    }
+
+    @Test
+    @Transactional
+    void patchWithIdMismatchCustomer() throws Exception {
+        int databaseSizeBeforeUpdate = customerRepository.findAll().size();
+        customer.setId(count.incrementAndGet());
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restCustomerMockMvc
+            .perform(
+                patch(ENTITY_API_URL_ID, count.incrementAndGet())
+                    .contentType("application/merge-patch+json")
+                    .content(TestUtil.convertObjectToJsonBytes(customer))
+            )
+            .andExpect(status().isBadRequest());
+
+        // Validate the Customer in the database
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeUpdate);
+    }
+
+    @Test
+    @Transactional
+    void patchWithMissingIdPathParamCustomer() throws Exception {
+        int databaseSizeBeforeUpdate = customerRepository.findAll().size();
+        customer.setId(count.incrementAndGet());
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restCustomerMockMvc
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(customer)))
+            .andExpect(status().isMethodNotAllowed());
+
+        // Validate the Customer in the database
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeUpdate);
+    }
+
+    @Test
+    @Transactional
+    void deleteCustomer() throws Exception {
+        // Initialize the database
+        customerRepository.saveAndFlush(customer);
+
+        int databaseSizeBeforeDelete = customerRepository.findAll().size();
+
+        // Delete the customer
+        restCustomerMockMvc
+            .perform(delete(ENTITY_API_URL_ID, customer.getId()).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+
+        // Validate the database contains one less item
+        List<Customer> customerList = customerRepository.findAll();
+        assertThat(customerList).hasSize(databaseSizeBeforeDelete - 1);
     }
 }

@@ -15,11 +15,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {
 
+    /**
+     * Custom query that calculates age in years of each customer and averages
+     * @return
+     */
     @Query(
             value = "select avg(DATEDIFF(YEAR,   birth_date, CURRENT_DATE())) as avg_age from customer",
             nativeQuery = true)
     String findAvgAge();
 
+    /**
+     * Custom query that calculates age in years of a customer by gender and averages
+     * @return
+     */
     @Query(
             value = "select avg(DATEDIFF(YEAR, birth_date, CURRENT_DATE())) as avg_age from customer where gender = :#{#gender?.name()}",
             nativeQuery = true)
