@@ -13,13 +13,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -81,6 +79,7 @@ public class CustomerResource {
 
     /**
      * Full update of a customer
+     *
      * @param id
      * @param customer
      * @return
@@ -88,8 +87,8 @@ public class CustomerResource {
      */
     @PutMapping("/customers/{id}")
     public ResponseEntity<Customer> updateCustomer(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody Customer customer
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody Customer customer
     ) throws URISyntaxException {
         log.debug("REST request to update Customer : {}, {}", id, customer);
         if (customer.getId() == null) {
@@ -105,22 +104,23 @@ public class CustomerResource {
 
         Customer result = customerService.save(customer);
         return ResponseEntity
-            .ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, customer.getId().toString()))
-            .body(result);
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, customer.getId().toString()))
+                .body(result);
     }
 
     /**
      * Partial update of a customer
+     *
      * @param id
      * @param customer
      * @return
      * @throws URISyntaxException
      */
-    @PatchMapping(value = "/customers/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PatchMapping(value = "/customers/{id}", consumes = {"application/json", "application/merge-patch+json"})
     public ResponseEntity<Customer> partialUpdateCustomer(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody Customer customer
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody Customer customer
     ) throws URISyntaxException {
         log.debug("REST request to partial update Customer partially : {}, {}", id, customer);
         if (customer.getId() == null) {
@@ -146,8 +146,8 @@ public class CustomerResource {
         log.debug("REST request to delete Customer : {}", id);
         customerService.delete(id);
         return ResponseEntity
-            .noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }

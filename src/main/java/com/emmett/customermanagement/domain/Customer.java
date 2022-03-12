@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @ApiModel(description = "Represents a Customer")
 public class Customer implements Serializable {
 
-    @ApiModelProperty(notes = "Omit for POST")
+    @ApiModelProperty(notes = "Omit the Id field for POST")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
