@@ -34,7 +34,7 @@ import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 
 /**
- * Full disclosure I 'borrowed' this class from JHipster
+ * EW - Full disclosure I 'borrowed' this class from JHipster
  */
 @ControllerAdvice
 public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait {
