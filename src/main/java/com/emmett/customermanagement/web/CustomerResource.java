@@ -5,10 +5,15 @@ import com.emmett.customermanagement.repository.jpa.CustomerRepository;
 import com.emmett.customermanagement.service.CustomerService;
 import com.emmett.customermanagement.web.errors.BadRequestAlertException;
 import com.emmett.customermanagement.web.util.HeaderUtil;
+import com.emmett.customermanagement.web.util.PaginationUtil;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +23,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -149,5 +155,33 @@ public class CustomerResource {
                 .noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * Rudimentary count that does not involve any criteria
+     *
+     * @return
+     */
+    @GetMapping("/customers/count")
+    public ResponseEntity<Long> countCustomers() {
+        log.debug("REST request to count Customers");
+        return ResponseEntity.ok().body(customerRepository.count());
+    }
+
+    /**
+     * Rudimentary "getAll" - with no criteria for now. Just pages a result set that's currently sorted by name ascending
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("/customers")
+    public ResponseEntity<List<Customer>> getAllCustomers(
+            @RequestParam(required = true, defaultValue = "0") int page, @RequestParam(required = false, defaultValue = "20") int size
+    ) {
+        log.debug("REST request to get page of Customers page {}, size {}", page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        Page<Customer> returnedPage = customerRepository.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(returnedPage, "/api/users");
+        return ResponseEntity.ok().headers(headers).body(returnedPage.getContent());
     }
 }
