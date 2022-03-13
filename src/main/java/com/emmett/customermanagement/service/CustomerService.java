@@ -81,6 +81,7 @@ public class CustomerService {
                     if (customer.getExternalCustomerId() != null) {
                         existingCustomer.setExternalCustomerId(customer.getExternalCustomerId());
                     }
+                    existingCustomer.setUpdatedAt(Instant.now());
 
                     return existingCustomer;
                 })
