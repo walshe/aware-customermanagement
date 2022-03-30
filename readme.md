@@ -1,8 +1,4 @@
 
-- build and execute a war
-
-problems:
-    stacktrace appearing in error response
 
 # CustomerManagement API
 
@@ -29,6 +25,3 @@ Just run tests with no reports
     ./mvnw test
 
 
-### TODO
-- Currently api errors have a really verbose stacktrace field which shows entire stack. Having some issues removing
-- Need to package the app into an executable jar
